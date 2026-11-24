@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FGM prevelant countries</title>
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="anonymous"
+    />
+    <!-- Leaflet JavaScript -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin="anonymous"
+    ></script>
+    <script src="FGM_prevelance.js"></script>
+    
+  </head>
+
+  <body>
+    <div id="dashboard">
+      <!-- Map -->
+      <div id="map"></div>
+
+      <!-- Dashboard panel -->
+      <div id="info">
+        <h2>Country information</h2>
+
+        <p>Click country on the map</p>
+
+        <p>
+          <strong>Country:</strong>
+          <span id="country">None selected</span>
+        </p>
+
+        <p>
+          <strong>FGM prevelance:</strong>
+          <span id="FGM_prevelance">-</span>
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // 1. Create the map
+      var map = L.map('map', {
+      center: [13.36, 20.90],
+      zoom: 3
+      });
+
+      // 2. Add OpenStreetMap tiles
+      var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+      });
+
+      osm.addTo(map);
+
+      //
+      var FGM_prevelance = L.geoJson(FGM_prevelance).addTo(map);
+      
+      // 3. Our simple data
+      var cities = [
+        {
+          name: 'Edinburgh',
+          lat: 55.9533,
+          lng: -3.1883,
+          population: 506520,
+        },
+        {
+          name: 'Glasgow',
+          lat: 55.8642,
+          lng: -4.2518,
+          population: 635130,
+        },
+        {
+          name: 'Aberdeen',
+          lat: 57.1497,
+          lng: -2.0943,
+          population: 198590,
+        },
+      ];
+
+      // 4. Loop through the data
+      cities.forEach(function (city) {
+        // Create marker
+        var marker = L.marker([city.lat, city.lng]).addTo(map);
+
+        // Add popup
+        marker.bindPopup(city.name);
+
+        // 5. Listen for marker clicks
+        marker.on('click', function () {
+          // Update dashboard
+          document.getElementById('country').textContent = city.name;
+
+          document.getElementById('FGM_prevelance').textContent = city.population.toLocaleString();
+        });
+      });
+    </script>
+  </body>
+</html>
