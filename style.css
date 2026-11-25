@@ -69,3 +69,17 @@ body {
 .leaflet-interactive:focus {
     outline: none;
 }
+
+.sidebar-image {
+    margin-top: auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    text-align: center;
+}
+
+.sidebar-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    display: block;
+}
