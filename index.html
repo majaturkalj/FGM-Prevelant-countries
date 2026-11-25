@@ -1,104 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <title>FGM prevelant countries</title>
-
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FGM Prevalent countries</title>
     <!-- Leaflet CSS -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin="anonymous"
-    />
+      crossorigin="anonymous"/>
+      <link rel="stylesheet" href="style.css" />
+
     <!-- Leaflet JavaScript -->
     <script
       src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-      crossorigin="anonymous"
-    ></script>
+      crossorigin="anonymous"></script>
     <script src="FGM_prevelance.js"></script>
-    
-  </head>
+</head>
+<body>
+    <div id="map"></div>
 
-  <body>
     <div id="dashboard">
-      <!-- Map -->
-      <div id="map"></div>
 
-      <!-- Dashboard panel -->
-      <div id="info">
-        <h2>Country information</h2>
+        <h2>FGM Prevalence</h2>
 
-        <p>Click country on the map</p>
+        <div id="country-info">
+            <p>Click on a country to display its information.</p>
+        </div>
 
-        <p>
-          <strong>Country:</strong>
-          <span id="country">None selected</span>
-        </p>
+        <div id="legend">
+            <h3>Legend</h3>
 
-        <p>
-          <strong>FGM prevelance:</strong>
-          <span id="FGM_prevelance">-</span>
-        </p>
-      </div>
+            <p><span class="low"></span> Low</p>
+            <p><span class="medium"></span> Medium</p>
+            <p><span class="high"></span> High</p>
+        </div>
+
     </div>
 
-    <script>
-      // 1. Create the map
+<!--Script files goes at the bottom of the body section-->
+<script>
+    // Create the map
       var map = L.map('map', {
       center: [13.36, 20.90],
-      zoom: 3
+      zoom: 3,
+      maxBounds: [[-28.61, -45.84], [48.50, 144.74]],
       });
 
-      // 2. Add OpenStreetMap tiles
+    // OpenStreetMap basemap
       var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
       });
 
       osm.addTo(map);
 
-      //
-      var FGM_prevelance = L.geoJson(FGM_prevelance).addTo(map);
-      
-      // 3. Our simple data
-      var cities = [
-        {
-          name: 'Edinburgh',
-          lat: 55.9533,
-          lng: -3.1883,
-          population: 506520,
-        },
-        {
-          name: 'Glasgow',
-          lat: 55.8642,
-          lng: -4.2518,
-          population: 635130,
-        },
-        {
-          name: 'Aberdeen',
-          lat: 57.1497,
-          lng: -2.0943,
-          population: 198590,
-        },
-      ];
-
-      // 4. Loop through the data
-      cities.forEach(function (city) {
-        // Create marker
-        var marker = L.marker([city.lat, city.lng]).addTo(map);
-
-        // Add popup
-        marker.bindPopup(city.name);
-
-        // 5. Listen for marker clicks
-        marker.on('click', function () {
-          // Update dashboard
-          document.getElementById('country').textContent = city.name;
-
-          document.getElementById('FGM_prevelance').textContent = city.population.toLocaleString();
+    // Thunderforest Neighbourhood basemap
+        var Thunderforest_Neighbourhood = L.tileLayer('https://api.thunderforest.com/neighbourhood/{z}/{x}/{y}{r}.png?apikey={apikey}', {
+            attribution: '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            apikey: '580d7760e4c9433fa158fa9d21b3f3be',
+            maxZoom: 22
         });
-      });
-    </script>
-  </body>
+
+        Thunderforest_Neighbourhood.addTo(map);
+
+    // ESRI World Gray basemap
+    var Esri_WorldGrayCanvas = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+      maxZoom: 16
+    });
+
+    Esri_WorldGrayCanvas.addTo(map);
+
+    // Adding FGM prevelance map
+      var FGM_prevelance = L.geoJson(FGM_prevelance);
+
+      FGM_prevelance.addTo(map);
+
+    // Create a function to define colours
+        function getColor(prevelance) {
+        switch (prevelance) {
+            case 'low':
+                return '#ffffb2';
+
+            case 'medium':
+                return '#ffb870';
+
+            case 'high':
+                return '#e31a1c';
+
+            default:
+                return '#cccccc';
+            }
+        }
+
+    // Adding style function to accesses the Prevelance property and the appropriate fill colour
+        function style(feature) {
+        return {
+            fillColor: getColor(feature.properties.Prevelance),
+            weight: 1,
+            opacity: 1,
+            color: '#666666',
+            fillOpacity: 0.80
+            };
+        }
+
+    // Apply the style to the FGM_prevelance layer
+        FGM_prevelance.setStyle(style);
+
+    // Create a function to update the dashboard with country information
+    function updateDashboard(properties) {
+
+    document.getElementById('country-info').innerHTML = `
+        <h3>${properties.CNTR_NAME}</h3>
+
+        <p><strong>FGM percentage:</strong>
+            ${properties.FGM_percentage}%
+        </p>
+
+        <p><strong>Prevalence:</strong>
+            ${properties.Prevelance}
+        </p>
+    `;
+    }
+
+    // Toolip and click eevents
+    function onEachFeature(feature, layer) {
+
+        // Create tooltip
+        layer.bindTooltip(feature.properties.CNTR_NAME, {
+            sticky: true,
+            direction: 'top'
+        });
+
+        // Zoom into individual country on click
+        layer.on('click', function(e) {
+            map.fitBounds(layer.getBounds());
+        });
+
+        // Add event listeners
+        layer.on({
+
+            click: function(e) {
+                updateDashboard(feature.properties);
+            },
+
+            mouseover: function(e) {
+                e.target.setStyle({
+                    weight: 3,
+                    color: '#333333',
+                    fillOpacity: 1
+                });
+            },
+
+            mouseout: function(e) {
+                e.target.setStyle({
+                    weight: 1,
+                    color: '#333333',
+                    fillOpacity: 0.80
+                });
+
+            // Reset dashboard content on mouseout
+            document.getElementById('country-info').innerHTML =
+                '<p>Click on a country to display its information.</p>';
+            }
+
+        });
+    }
+
+    // Apply the onEachFeature function to the FGM_prevelance layer
+          FGM_prevelance.eachLayer(function(layer) {
+          onEachFeature(layer.feature, layer);
+          });
+
+    // Zoom to the extent of the GeoJSON layer
+          map.fitBounds(FGM_prevelance.getBounds());
+
+    // Basemaps control
+        var basemaps = {
+        "OSM": osm,
+        "Thunderforest Neighbourhood": Thunderforest_Neighbourhood,
+        "Esri World Gray Canvas": Esri_WorldGrayCanvas
+        };
+        
+    // Create overlay maps object
+        L.control.layers(basemaps).addTo(map);
+
+</script>
+</body>
 </html>
